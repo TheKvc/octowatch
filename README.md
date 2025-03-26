@@ -114,6 +114,7 @@ The script refreshes every few seconds (default interval is set in the script) a
 ![Screenshot from 2025-03-26 09-27-18](https://github.com/user-attachments/assets/b0d7330e-ffbe-4951-a45f-5b17c5466e76)
 
 Notice: Experimental Progress bar... 
+
 ![Screenshot from 2025-03-25 09-08-06](https://github.com/user-attachments/assets/83ac708e-15fb-48d9-9a18-1adbb43281a2)
 
 ---
