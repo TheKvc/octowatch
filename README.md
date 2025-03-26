@@ -136,3 +136,9 @@ Contributions and feedback are welcome! Please **open an issue** or **submit a p
 This project is licensed under the MIT License. 
 
 ---
+
+## Enjoying OctoWatch?
+
+If this project helps you keep an eye on your 3D printers efficiently, **please consider giving it a star on GitHub**. Your support helps improve the project and motivates further development!
+
+---
