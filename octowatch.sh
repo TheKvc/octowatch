@@ -1,7 +1,7 @@
 #!/bin/bash
 
 CONFIG_FILE="printers.ini"
-LOG_FILE="/var/log/octowatch/octowatch.log"
+LOG_FILE="octowatch.log"
 VERSION=1.0         # Version variable
 
 DEFAULT_INTERVAL=5
@@ -72,6 +72,12 @@ progress_bar() {
     # Build the underlying bar
     local bar_filled
     bar_filled=$(printf "%0.s$filled_char" $(seq 1 $filled))
+
+    # if the progress is 0, then the bar should be empty
+    if [[ $(echo "$1 == 0" | bc) -eq 1 ]]; then
+        bar_filled=""
+    fi
+
     local bar_empty
     bar_empty=$(printf "%0.s$empty_char" $(seq 1 $empty))
     local bar="${bar_filled}${bar_empty}"
@@ -87,6 +93,9 @@ progress_bar() {
 
     # Build final bar by replacing a segment of the underlying bar with percent_str.
     local final_bar="${bar:0:insert_index}${percent_str}${bar:insert_index+percent_len}"
+
+    #removing last character from final_bar
+    final_bar=${final_bar%?}
 
     # Enclose with vertical bars.
     echo "${GREEN}|${LIGHT_GREEN}${final_bar}${GREEN}|${NC}"
@@ -216,9 +225,9 @@ while true; do
                     est_finish_fmt=$(date -d "@$finish_epoch" "+%m-%d %I:%M %p")
                 fi
             else
-                formatted_time="N/A                                    "
-                remaining_time="N/A                                    "
-                est_finish_fmt="N/A                                    "
+                formatted_time="N/A"
+                remaining_time="N/A"
+                est_finish_fmt="N/A"
             fi
 
             # Get printer temperature info from /api/printer
@@ -282,7 +291,7 @@ while true; do
             info+="${BRIGHT_BLUE} File\t\t:${NC} $file_name                               \n"
             info+="${BRIGHT_BLUE} Progress\t:${NC} ${LIGHT_GREEN}${bar}${NC}     \n"
             info+="${BRIGHT_BLUE} Elapsed Time\t:${NC} $formatted_time            \n"
-            info+="${BRIGHT_BLUE} Remaining Time\t:${NC} $remaining_time (${est_finish_fmt})         \n"
+            info+="${BRIGHT_BLUE} Remaining Time\t:${NC} $remaining_time (${est_finish_fmt})              \n"
         fi
         info+=" +------------------------------------------------------------------+ \n"
         output+=( "$info" )
