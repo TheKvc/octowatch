@@ -299,7 +299,7 @@ while true; do
 
     # Print overall dashboard heading with version
     echo " =================================================================== "
-    echo -e "${LIGHT_YELLOW}                    Monitoring 3D Printers${NC}  "
+    echo -e "${LIGHT_YELLOW}                        Monitoring 3D Printers${NC}  "
     echo " =================================================================== "
     echo -e "\033[65Gv${VERSION} \033[2G$(date)"
     echo ""
