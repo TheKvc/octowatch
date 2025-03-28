@@ -6,8 +6,7 @@ It displays real-time information—such as **print progress**, **elapsed/remain
 
 [octowatch-demo](https://github.com/user-attachments/assets/f581abbe-ed32-4a55-901b-e1e54059282a)
 
-If you like **OctoWatch**, find it useful, and want to donate—**don’t donate to me.**  
-Instead, support the main project, **OctoPrint**, which makes all of this possible! Your contributions help keep it growing and improving for everyone.  
+If you like **OctoWatch**, find it useful, and want to donate— Kindly, support the main project, **OctoPrint**, which makes all of this possible! Your contributions help keep it growing and improving for everyone.  
 [**Support OctoPrint here!**](https://octoprint.org/support-octoprint/)
 Big thanks to **Gina Häußge** for creating OctoPrint and making life easier for 3D printing enthusiasts worldwide!
 
