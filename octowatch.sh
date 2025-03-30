@@ -2,7 +2,7 @@
 
 CONFIG_FILE="printers.ini"
 LOG_FILE="octowatch.log"
-VERSION=1.0         # Version variable
+VERSION=1.1         # Version variable
 
 DEFAULT_INTERVAL=5
 DEFAULT_SCREEN_REFRESH=30
@@ -23,10 +23,16 @@ DIM_LIGHT_GREY="\033[2;37m"
 BRIGHT_BLACK="\033[90m"
 NC="\033[0m"  # No Color
 
+# ANSI positioning codes
+HOME="\033[H"
+GotoX65="\033[65G"
+GotoX2="\033[2G"
+
 # Get refresh interval from command line if provided
 REFRESH_INTERVAL=${1:-$DEFAULT_INTERVAL}
 SCREEN_REFRESH=$DEFAULT_SCREEN_REFRESH
 counter=0
+SCREEN_REFRESH_FLAG=0
 
 # Function to check and install missing dependencies
 check_dependencies() {
@@ -156,8 +162,6 @@ clear
 
 # Main loop
 while true; do
-    # Move cursor to top-left using VT100 code
-    echo -e "\033[H"
 
     # Array to hold printer info strings
     output=()
@@ -178,6 +182,7 @@ while true; do
         if [ "$http_code" -ne 200 ]; then
             info+="${BRIGHT_BLUE} Status\t\t:${NC} ${RED}Error (HTTP $http_code)${NC}\n"
             log_message "Error: Printer $printer returned HTTP code $http_code."
+            SCREEN_REFRESH_FLAG=1
         else
             state=$(echo "$body" | jq -r '.state')
             file_name=$(echo "$body" | jq -r '.job.file.name')
@@ -266,6 +271,8 @@ while true; do
 
             else
                 status_string="${RED}COMMUNICATION ERROR                             ${NC}"
+                log_message "Error: Printer $printer returned HTTP code $temp_http_code."
+                SCREEN_REFRESH_FLAG=1
             fi
 
             # Set state color
@@ -297,12 +304,25 @@ while true; do
         output+=( "$info" )
     done
 
+   if [ $((counter % SCREEN_REFRESH)) -eq 0 ]; then
+        counter=0
+        clear
+    fi
+
+    if [ ${SCREEN_REFRESH_FLAG} -eq 1 ]; then
+        sleep "$REFRESH_INTERVAL"
+        clear
+        SCREEN_REFRESH_FLAG=0
+    fi
+
     # Print overall dashboard heading with version
+    echo -e "${HOME}"
     echo " =================================================================== "
     echo -e "${LIGHT_YELLOW}                        Monitoring 3D Printers${NC}  "
     echo " =================================================================== "
-    echo -e "\033[65Gv${VERSION} \033[2G$(date)"
+    echo -e "${GotoX65}v${VERSION} ${GotoX2}$(date)"
     echo ""
+
     for info in "${output[@]}"; do
         echo -e "$info"
     done
@@ -310,15 +330,6 @@ while true; do
     sleep "$REFRESH_INTERVAL"
     counter=$((counter + 1))
 
-    if [ "$http_code" -ne 200 ]; then
-        sleep "$REFRESH_INTERVAL"
-        clear
-    fi
-
-    if [ $((counter % SCREEN_REFRESH)) -eq 0 ]; then
-        counter=0
-        clear
-    fi
 done
 
 # When exiting, restore the blinking cursor (handled by trap)
