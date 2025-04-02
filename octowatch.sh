@@ -2,7 +2,7 @@
 
 CONFIG_FILE="printers.ini"
 LOG_FILE="octowatch.log"
-VERSION=1.1         # Version variable
+VERSION=1.2         # Version variable
 
 DEFAULT_INTERVAL=5
 DEFAULT_SCREEN_REFRESH=30
@@ -58,56 +58,50 @@ check_config_file() {
 # Input: progress percentage (e.g., 75.00)
 # Output: A progress bar string with the percentage (padded with spaces) in the center,
 #         enclosed in vertical bars.
+# Improved, and optimised version of the progress bar function.
+# Suggested by: Honest_Photograph519 on reddit. Link: https://www.reddit.com/r/bash/comments/1joljjd/comment/mkt2a61/?context=3
 progress_bar() {
-    local progress="$1"
+    local progress_exact="$1"
+    local progress="${progress_exact%.*}"
     local bar_length=48
-
+ 
     # Force progress to 100 if it is >= 100.
-    if (( $(echo "$progress >= 100" | bc -l) )); then
-        progress=100
-    fi
-
+    (( progress = progress <= 100 ? progress : 100 ))
+ 
     # Calculate number of filled characters (rounded)
-    local filled
-    filled=$(printf "%.0f" "$(echo "$progress * $bar_length / 100" | bc -l)")
-    local empty=$((bar_length - filled))
-
+    local filled empty
+    (( filled = progress * bar_length / 100,
+       empty = bar_length - filled ))
+ 
     local filled_char="█"
     local empty_char="_"
-
+ 
     # Build the underlying bar
     local bar_filled
-    bar_filled=$(printf "%0.s$filled_char" $(seq 1 $filled))
-
-    # if the progress is 0, then the bar should be empty
-    if [[ $(echo "$1 == 0" | bc) -eq 1 ]]; then
-        bar_filled=""
-    fi
-
+    printf -v bar_filled '%*s' $filled ""
+    bar_filled=${bar_filled// /$filled_char}
+ 
     local bar_empty
-    bar_empty=$(printf "%0.s$empty_char" $(seq 1 $empty))
+    printf -v bar_empty '%*s' $empty ""
+    bar_empty=${bar_empty// /$empty_char}
+ 
     local bar="${bar_filled}${bar_empty}"
-
+ 
     # Format percentage string with 2 decimals and exactly one space before and after.
-    local percent_value
-    percent_value=$(printf "%.2f%%" "$progress")
+    local percent_value=$(printf "%.2f%%" "$progress_exact")
     local percent_str=" ${percent_value} "
     local percent_len=${#percent_str}
-
+ 
     # Calculate insertion point (index where the percent_str should start within bar)
     local insert_index=$(( (bar_length - percent_len) / 2 ))
-
+ 
     # Build final bar by replacing a segment of the underlying bar with percent_str.
     local final_bar="${bar:0:insert_index}${percent_str}${bar:insert_index+percent_len}"
-
-    #removing last character from final_bar
-    final_bar=${final_bar%?}
-
+ 
     # Enclose with vertical bars.
     echo "${GREEN}|${LIGHT_GREEN}${final_bar}${GREEN}|${NC}"
 }
-
-
+ 
 
 
 # Function to log messages with timestamp
@@ -180,7 +174,7 @@ while true; do
 
         info+="${BRIGHT_BLUE} Printer\t:${NC} $printer\n"
         if [ "$http_code" -ne 200 ]; then
-            info+="${BRIGHT_BLUE} Status\t\t:${NC} ${RED}Error (HTTP $http_code)${NC}\n"
+            info+="${BRIGHT_BLUE} Status\t\t:${NC} ${ORANGE}Error (HTTP $http_code)${NC}\n"
             log_message "Error: Printer $printer returned HTTP code $http_code."
             SCREEN_REFRESH_FLAG=1
         else
@@ -258,19 +252,19 @@ while true; do
                 if (( $(echo "$abs_bed <= 3" | bc -l) )); then
                     bed_display="${LIGHT_GREEN}${bed_temp}${NC}/${bed_target}"
                 else
-                    bed_display="${RED}${bed_temp}${NC}/${bed_target}"
+                    bed_display="${ORANGE}${bed_temp}${NC}/${bed_target}"
                 fi
 
                 if (( $(echo "$abs_nozzle <= 3" | bc -l) )); then
                     nozzle_display="${LIGHT_GREEN}${nozzle_temp}${NC}/${tool_target}"
                 else
-                    nozzle_display="${RED}${nozzle_temp}${NC}/${tool_target}"
+                    nozzle_display="${ORANGE}${nozzle_temp}${NC}/${tool_target}"
                 fi
 
                 status_string="Bed: ${bed_display},    End: ${nozzle_display}              "
 
             else
-                status_string="${RED}COMMUNICATION ERROR                             ${NC}"
+                status_string="${ORANGE}COMMUNICATION ERROR                             ${NC}"
                 log_message "Error: Printer $printer returned HTTP code $temp_http_code."
                 SCREEN_REFRESH_FLAG=1
             fi
@@ -283,7 +277,7 @@ while true; do
             elif [ "$state" == "Cancelling" ]; then
                 state_display="${ORANGE}$state${NC}"
                 elif [ "$state" == "Error" ]; then
-                state_display="${RED}$state${NC}"
+                state_display="${ORANGE}$state${NC}"
             else
                 state_display="$state"
             fi
